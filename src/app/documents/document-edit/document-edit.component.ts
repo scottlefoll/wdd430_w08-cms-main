@@ -1,10 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, Params } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 import { Document } from '../document.model';
 import { DocumentService } from '../document.service';
+import { CanComponentDeactivate } from '../../shared/can-deactivate-guard.service';
 
 @Component({
   selector: 'cms-document-edit',
@@ -15,7 +16,7 @@ export class DocumentEditComponent implements OnInit {
   @ViewChild('documentEditForm') documentEditForm: NgForm;
   document: Document;
   newDocument: Document;
-  editMode: boolean = false;
+  // private editMode: boolean = false;
   id: string;
   subscription: Subscription;
 
@@ -30,7 +31,7 @@ export class DocumentEditComponent implements OnInit {
       (params: Params) => {
         this.id = params['id'];
         if (this.id === null || this.id === undefined) {
-          this.editMode = false;
+          this.documentService.setEditMode(false);
           return;
         }
         this.document = this.documentService.getDocument(this.id);
@@ -38,7 +39,8 @@ export class DocumentEditComponent implements OnInit {
         if (this.document === null || this.document === undefined) {
           return;
         }
-        this.editMode = true;
+
+        this.documentService.setEditMode(true);
         // clone the document object to a new object
         this.newDocument = JSON.parse(JSON.stringify(this.document));
       }
@@ -46,14 +48,16 @@ export class DocumentEditComponent implements OnInit {
   }
 
   onSubmit(form: NgForm) {
-    this.newDocument = new Document( this.document.id, '', '', '', null);
-    this.newDocument.name = form.value.name;
-    this.newDocument.description = form.value.description;
-    this.newDocument.url = form.value.url;
-    this.newDocument.children = form.value.children;
+    this.newDocument = new Document(
+      this.document.id,
+      form.value.name,
+      form.value.description,
+      form.value.url,
+      form.value.children,
+    );
 
-    if (this.editMode) {
-      this.documentService.updateDocument(this.document, this.newDocument)
+    if (this.documentService.getEditMode()) {
+      this.documentService.updateDocument(this.document, this.newDocument);
     } else {
       this.documentService.addDocument(this.newDocument);
     }
@@ -61,7 +65,17 @@ export class DocumentEditComponent implements OnInit {
   }
 
   onCancel() {
-    this.router.navigate(['/documents']);
+    if (this.canDeactivate()) {
+      this.router.navigate(['/documents']);
+    }
+  }
+
+  canDeactivate(): Observable<boolean> | Promise<boolean> | boolean {
+    if (this.documentEditForm.dirty) {
+      return confirm('Do you want to discard the changes?');
+    } else {
+      return true;
+    }
   }
 
   ngOnDestroy() {

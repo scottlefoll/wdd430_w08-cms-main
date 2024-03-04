@@ -1,23 +1,24 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, Params } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 import { Contact } from '../contact.model';
 import { ContactService } from '../contact.service';
+import { CanComponentDeactivate } from '../../shared/can-deactivate-guard.service';
 
 @Component({
   selector: 'cms-contact-edit',
   templateUrl: './contact-edit.component.html',
   styleUrls: ['./contact-edit.component.css']
 })
-export class ContactEditComponent implements OnInit {
+export class ContactEditComponent implements OnInit, CanComponentDeactivate {
   @ViewChild('contactEditForm') contactEditForm: NgForm;
   contact: Contact;
   newContact: Contact;
   groupContacts: Contact[] = [];
-  private editMode: boolean = false;
+  // private editMode: boolean = false;
   invalidContact: boolean = false;
   id: string;
   subscription: Subscription;
@@ -82,12 +83,21 @@ export class ContactEditComponent implements OnInit {
     } else {
       this.contactService.addContact(this.newContact);
     }
-
     this.router.navigate(['/contacts']);
   }
 
   onCancel() {
-    this.router.navigate(['/contacts']);
+    if (this.canDeactivate()) {
+      this.router.navigate(['/contacts']);
+    }
+  }
+
+  canDeactivate(): Observable<boolean> | Promise<boolean> | boolean {
+    if (this.contactEditForm.dirty) {
+      return confirm('Do you want to discard the changes?');
+    } else {
+      return true;
+    }
   }
 
   onDrop(event: CdkDragDrop<Contact>) {
@@ -101,6 +111,8 @@ export class ContactEditComponent implements OnInit {
       }
 
       this.groupContacts.push(contactCopy);
+      // Manually set the form to be dirty
+      this.contactEditForm.form.markAsDirty();
     }
   }
 
