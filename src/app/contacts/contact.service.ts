@@ -29,6 +29,16 @@ export class ContactService{
 
     this.maxContactId++;
     newContact.id = this.maxContactId.toString();
+
+    if (newContact.group) {
+      newContact.group.forEach(contact => {
+        if (!contact.group) {
+          contact.group = [];
+        }
+        contact.group.push( newContact );
+      })
+
+    }
     this.contacts.push(newContact);
     this.contactListChangedEvent.next(this.contacts.slice());
   }
@@ -64,8 +74,13 @@ export class ContactService{
       alert('Contact not found - update unsuccessfull!');
       return;
     }
+
+    // Initialize originalContact.group as an empty array if it's null or undefined
+    originalContact.group = originalContact.group || [];
     newContact.id = originalContact.id;
+    // Assign values of the newContact to the originalContact
     this.contacts[pos] = newContact;
+    // Update the contact list
     this.contactListChangedEvent.next(this.contacts.slice());
   }
 
@@ -80,8 +95,6 @@ export class ContactService{
       return;
     }
     this.contacts.splice(pos, 1);
-    alert('deleteContact using this.contactChangedEvent.next in contact.service.');
-    console.log('deleteContact using this.contactChangedEvent.next in contact.service.');
     this.contactChangedEvent.next(this.contacts.slice());
   }
 
@@ -111,9 +124,7 @@ export class ContactService{
     });
 
     const sortedIndividuals = individuals.sort((a, b) => lastName(a.name).localeCompare(lastName(b.name)));
-
     sortedContacts = sortedContacts.concat(sortedIndividuals);
-
     return sortedContacts;
   }
 

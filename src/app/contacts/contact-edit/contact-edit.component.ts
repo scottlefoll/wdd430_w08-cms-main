@@ -41,30 +41,45 @@ export class ContactEditComponent implements OnInit {
         if (this.contact === null || this.contact === undefined) {
           return;
         }
-        this.contactService.setEditMode(true);
-        // clone the contact object to a new object
-        this.newContact = JSON.parse(JSON.stringify(this.contact));
-        // if the contact has a group then clone the group
+
         if (this.contact.group) {
           this.groupContacts = JSON.parse(JSON.stringify(this.contact.group));
         }
+
+        this.contactService.setEditMode(true);
+        // clone the contact object to a new object
+        this.newContact = JSON.parse(this.stringifyWithoutCircular(this.contact));
       }
     );
   }
 
+  stringifyWithoutCircular(obj: any): string {
+    const cache = new Set();
+
+    return JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (cache.has(value)) {
+          // Circular reference found, discard key
+          return;
+        }
+        cache.add(value);
+      }
+      return value;
+    });
+  }
+
   onSubmit(form: NgForm) {
-    alert('onSubmit');
-    this.newContact = new Contact( this.contact.id, '', '', '', null);
-    this.newContact.name = form.value.name;
-    this.newContact.email = form.value.email;
-    this.newContact.phone = form.value.phone;
-    this.newContact.imageUrl = form.value.imageUrl;
+    this.newContact = new Contact(
+      this.contact.id,
+      form.value.name,
+      form.value.email,
+      form.value.phone,
+      form.value.imageUrl,
+      this.groupContacts);
 
     if (this.contactService.getEditMode()) {
-      alert('update contact' + this.newContact);
       this.contactService.updateContact(this.contact, this.newContact)
     } else {
-      alert('add contact' + this.newContact);
       this.contactService.addContact(this.newContact);
     }
 
@@ -79,12 +94,13 @@ export class ContactEditComponent implements OnInit {
     if (event.previousContainer !== event.container) {
       const contactCopy = {...event.item.data };
       const invalidGroupContact = this.isInvalidContact(contactCopy);
+
       if (invalidGroupContact){
-         return;
+        this.invalidContact = true;
+        return;
       }
+
       this.groupContacts.push(contactCopy);
-      console.log('Updated groupContacts:', this.groupContacts);
-      alert('Updated groupContacts:' + this.groupContacts);
     }
   }
 
@@ -103,6 +119,7 @@ export class ContactEditComponent implements OnInit {
         return true;
       }
     }
+    this.invalidContact = false;
     return false;
   }
 
