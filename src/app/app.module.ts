@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './header.component';
@@ -44,6 +45,7 @@ import { ContactEditComponent } from './contacts/contact-edit/contact-edit.compo
     FormsModule,
     ReactiveFormsModule,
     AppRoutingModule,
+    DragDropModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

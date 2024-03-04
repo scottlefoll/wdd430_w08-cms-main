@@ -9,7 +9,6 @@ export class AppComponent {
   title = 'WeLearn CMS';
   // implement selected feature with the switchview method
   // selectedFeature: string = "documents";
-  // // implement the switchView method
 
   // switchView(selectedFeature: string) {
   //   if (this.selectedFeature?.toUpperCase() !== selectedFeature.toUpperCase()) {

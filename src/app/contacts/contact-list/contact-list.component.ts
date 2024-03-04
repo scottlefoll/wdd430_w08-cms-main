@@ -1,6 +1,7 @@
 import { Subscription } from 'rxjs';
 import { Component, EventEmitter, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { Contact } from '../contact.model';
 import { ContactService } from '../contact.service';
@@ -43,5 +44,9 @@ export class ContactListComponent implements OnInit {
 
   onNewContact(){
     this.router.navigate(['new'], {relativeTo: this.route});
+  }
+
+  isEditMode(): boolean {
+    return this.contactService.getEditMode();
   }
 }
